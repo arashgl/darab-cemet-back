@@ -23,6 +23,7 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { PostSection } from './entities/post.entity';
 
 @Controller('posts')
 export class PostsController {
@@ -38,7 +39,7 @@ export class PostsController {
   ) {
     const filters: PostFilters = {};
 
-    if (section) filters.section = section;
+    if (section) filters.section = section as PostSection;
     if (title) filters.title = title;
     if (tags) filters.tags = tags.split(',');
 

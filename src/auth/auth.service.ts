@@ -5,13 +5,28 @@ import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
+
+  async onModuleInit() {
+    const user = await this.usersService.findByEmail(
+      this.configService.getOrThrow('ADMIN_EMAIL'),
+    );
+    if (!user) {
+      await this.register({
+        email: this.configService.getOrThrow('ADMIN_EMAIL'),
+        password: this.configService.getOrThrow('ADMIN_PASSWORD'),
+        fullName: 'admin',
+      });
+    }
+  }
 
   async register(createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
