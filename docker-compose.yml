@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: darab_cement_db
+    ports:
+      - '5341:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: darab_cement
+
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
