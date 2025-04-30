@@ -20,7 +20,7 @@ export enum PostSection {
 
 @Entity('posts')
 export class Post {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
