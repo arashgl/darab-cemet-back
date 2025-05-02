@@ -12,7 +12,7 @@ export enum MediaType {
 
 @Entity('media')
 export class Media {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
