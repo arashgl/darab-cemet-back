@@ -7,6 +7,7 @@ import databaseConfig from './config/database.config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
+import { MediaModule } from './media/media.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
@@ -47,6 +48,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     AuthModule,
     UsersModule,
     PostsModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
