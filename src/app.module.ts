@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { ProductsModule } from './products/products.module';
 import { MediaModule } from './media/media.module';
+import { CategoryModule } from './categories/category.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
@@ -51,6 +52,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     PostsModule,
     ProductsModule,
     MediaModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -7,6 +7,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Comment } from './entities/comment.entity';
 import { User } from '../users/entities/user.entity';
+import { Category } from '../categories/category.entity';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -22,6 +23,7 @@ export interface PostFilters {
   section?: PostSection;
   title?: string;
   tags?: string[];
+  categoryId?: number;
 }
 
 @Injectable()
@@ -31,12 +33,15 @@ export class PostsService {
     private postsRepository: Repository<Post>,
     @InjectRepository(Comment)
     private commentsRepository: Repository<Comment>,
+    @InjectRepository(Category)
+    private categoryRepo: Repository<Category>,
   ) {}
 
   async findAll(
     page = 1,
     limit = 10,
     filters?: PostFilters,
+    sort?: string,
   ): Promise<PaginatedResponse<Post>> {
     const skip = (page - 1) * limit;
 
@@ -45,8 +50,22 @@ export class PostsService {
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.author', 'author')
       .skip(skip)
-      .take(limit)
-      .orderBy('post.createdAt', 'DESC');
+      .take(limit);
+
+    // Apply sorting
+    switch (sort) {
+      case 'newest':
+        queryBuilder.orderBy('post.createdAt', 'DESC');
+        break;
+      case 'oldest':
+        queryBuilder.orderBy('post.createdAt', 'ASC');
+        break;
+      case 'most_viewed':
+        queryBuilder.orderBy('post.views', 'DESC');
+        break;
+      default:
+        queryBuilder.orderBy('post.createdAt', 'DESC'); // Default sort by newest
+    }
 
     // Apply filters if provided
     if (filters) {
@@ -66,6 +85,12 @@ export class PostsService {
         // Filter posts that have at least one of the specified tags
         queryBuilder.andWhere('post.tags && :tags', {
           tags: filters.tags,
+        });
+      }
+
+      if (filters.categoryId) {
+        queryBuilder.andWhere('post.categoryId = :categoryId', {
+          categoryId: filters.categoryId,
         });
       }
     }
@@ -97,20 +122,35 @@ export class PostsService {
     return post;
   }
 
-  async create(createPostDto: CreatePostDto, author: User): Promise<Post> {
-    const post = this.postsRepository.create({
-      ...createPostDto,
-      author,
-    });
+  async incrementViews(id: string): Promise<Post> {
+    const post = await this.findOne(id);
+    post.views += 1;
+    return this.postsRepository.save(post);
+  }
 
+  async create(createPostDto: CreatePostDto, author: User): Promise<Post> {
+    const { categoryId, ...rest } = createPostDto;
+    let category: Category | null = null;
+    if (categoryId) {
+      category = await this.categoryRepo.findOneBy({ id: +categoryId });
+    }
+    const post = this.postsRepository.create({
+      ...rest,
+      author,
+      category,
+    });
     return this.postsRepository.save(post);
   }
 
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
     const post = await this.findOne(id);
-
-    Object.assign(post, updatePostDto);
-
+    const { categoryId, ...rest } = updatePostDto;
+    Object.assign(post, rest);
+    if (categoryId !== undefined) {
+      post.categoryId = categoryId
+        ? (await this.categoryRepo.findOneBy({ id: +categoryId }))?.id
+        : undefined;
+    }
     return this.postsRepository.save(post);
   }
 

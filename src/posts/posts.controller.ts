@@ -36,23 +36,32 @@ export class PostsController {
     @Query('section') section?: string,
     @Query('title') title?: string,
     @Query('tags') tags?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('sort') sort?: string,
   ) {
     const filters: PostFilters = {};
 
     if (section) filters.section = section as PostSection;
     if (title) filters.title = title;
     if (tags) filters.tags = tags.split(',');
+    if (categoryId) filters.categoryId = parseInt(categoryId, 10);
 
     return this.postsService.findAll(
       parseInt(page, 10),
       parseInt(limit, 10),
       Object.keys(filters).length > 0 ? filters : undefined,
+      sort,
     );
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(id);
+  }
+
+  @Post(':id/view')
+  async recordView(@Param('id') id: string) {
+    return this.postsService.incrementViews(id);
   }
 
   @Post()

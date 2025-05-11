@@ -35,4 +35,8 @@ export class UpdatePostDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
 }

@@ -4,6 +4,7 @@ import {
   IsArray,
   IsOptional,
   IsEnum,
+  IsNumber,
 } from 'class-validator';
 import { PostSection } from '../entities/post.entity';
 
@@ -27,6 +28,10 @@ export class CreatePostDto {
   @IsNotEmpty()
   @IsString()
   content: string;
+
+  @IsOptional()
+  @IsNumber()
+  categoryId?: number;
 
   leadPicture: string;
 }

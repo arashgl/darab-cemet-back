@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Product, ProductType } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-
+import { CategoryService } from 'src/categories/category.service';
 export interface ProductFilters {
   type?: ProductType;
   name?: string;
@@ -16,6 +16,7 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
+    private categoryService: CategoryService,
   ) {}
 
   async findAll(
@@ -25,6 +26,8 @@ export class ProductsService {
     search?: string,
   ) {
     const query = this.productsRepository.createQueryBuilder('product');
+
+    query.leftJoinAndSelect('product.category', 'category');
 
     if (filters) {
       if (filters.type) {
@@ -63,6 +66,7 @@ export class ProductsService {
   async findOne(id: string) {
     const product = await this.productsRepository.findOne({
       where: { id },
+      relations: ['category'],
     });
 
     if (!product) {
@@ -73,17 +77,24 @@ export class ProductsService {
   }
 
   async create(createProductDto: CreateProductDto) {
-    const product = this.productsRepository.create(createProductDto);
+    const body: any = createProductDto;
+    if (body.categoryId) {
+      body.categoryId = +body.categoryId;
+    }
+    const product = this.productsRepository.create(body);
     return await this.productsRepository.save(product);
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
+    const { categoryId, ...rest } = updateProductDto;
     const product = await this.findOne(id);
-    const updatedProduct = this.productsRepository.merge(
-      product,
-      updateProductDto,
-    );
-    return await this.productsRepository.save(updatedProduct);
+    Object.assign(product, rest);
+    if (categoryId !== undefined) {
+      product.categoryId = categoryId
+        ? (await this.categoryService.findOne(+categoryId))?.id
+        : undefined;
+    }
+    return await this.productsRepository.save(product);
   }
 
   async remove(id: string) {

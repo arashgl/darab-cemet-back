@@ -42,4 +42,8 @@ export class CreateProductDto {
   @IsArray()
   @IsString({ each: true })
   technicalSpecs?: string[];
+
+  @IsOptional()
+  @IsString()
+  categoryId?: string | number;
 }

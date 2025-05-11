@@ -1,9 +1,12 @@
+import { Category } from 'src/categories/category.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 
 export enum ProductType {
@@ -50,4 +53,13 @@ export class Product {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  categoryId?: number;
+
+  @ManyToOne(() => Category, (category) => category.products, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'categoryId' })
+  category?: Category;
 }

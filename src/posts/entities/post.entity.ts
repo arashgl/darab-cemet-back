@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Comment } from './comment.entity';
+import { Category } from '../../categories/category.entity';
 
 export enum PostSection {
   OCCASIONS = 'مناسبت ها',
@@ -66,6 +67,16 @@ export class Post {
 
   @Column({ nullable: true, default: 3 })
   readingTime: number;
+
+  @Column({ type: 'int', default: 0 })
+  views: number;
+
+  @Column({ nullable: true })
+  categoryId?: number;
+
+  @ManyToOne(() => Category, (category) => category.posts)
+  @JoinColumn({ name: 'categoryId' })
+  category: Category | null;
 
   @CreateDateColumn()
   createdAt: Date;
