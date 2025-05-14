@@ -49,4 +49,9 @@ export class CategoryController {
   remove(@Param('id') id: number) {
     return this.categoryService.remove(id);
   }
+
+  @Get(':id/children')
+  getChildren(@Param('id') id: number) {
+    return this.categoryService.getChildren(id);
+  }
 }
