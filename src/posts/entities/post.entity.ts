@@ -17,6 +17,7 @@ export enum PostSection {
   ANNOUNCEMENTS = 'اطلاعیه ها',
   NEWS = 'اخبار ها',
   ACHIEVEMENTS = 'افتخارات',
+  SLIDER = 'اسلایدر',
 }
 
 @Entity('posts')
