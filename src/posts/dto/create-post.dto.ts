@@ -1,9 +1,9 @@
 import {
-  IsNotEmpty,
-  IsString,
   IsArray,
-  IsOptional,
   IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 import { PostSection } from '../entities/post.entity';
 
@@ -33,4 +33,6 @@ export class CreatePostDto {
   categoryId?: string;
 
   leadPicture: string;
+
+  attachments?: string[];
 }

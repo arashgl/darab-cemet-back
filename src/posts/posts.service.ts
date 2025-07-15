@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Post, PostSection } from './entities/post.entity';
+import { Category } from '../categories/category.entity';
+import { User } from '../users/entities/user.entity';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { CreateCommentDto } from './dto/create-comment.dto';
 import { Comment } from './entities/comment.entity';
-import { User } from '../users/entities/user.entity';
-import { Category } from '../categories/category.entity';
+import { Post, PostSection } from './entities/post.entity';
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -26,6 +26,10 @@ export interface PostFilters {
   categoryId?: number;
 }
 
+export type PostWithAttachments = Omit<Post, 'attachments'> & {
+  attachments: string[];
+};
+
 @Injectable()
 export class PostsService {
   constructor(
@@ -42,7 +46,7 @@ export class PostsService {
     limit = 10,
     filters?: PostFilters,
     sort?: string,
-  ): Promise<PaginatedResponse<Post>> {
+  ): Promise<PaginatedResponse<PostWithAttachments>> {
     const skip = (page - 1) * limit;
 
     // Build query with filters
@@ -99,7 +103,12 @@ export class PostsService {
     const [posts, totalItems] = await queryBuilder.getManyAndCount();
 
     return {
-      data: posts,
+      data: posts.map((post) => {
+        return {
+          ...post,
+          attachments: post.attachments?.split(',') || [],
+        };
+      }),
       meta: {
         currentPage: page,
         itemsPerPage: limit,
@@ -136,6 +145,7 @@ export class PostsService {
     }
     const post = this.postsRepository.create({
       ...rest,
+      attachments: createPostDto.attachments?.join(','),
       author,
       category,
     });

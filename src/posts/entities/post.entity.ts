@@ -48,6 +48,9 @@ export class Post {
   @Column()
   leadPicture: string;
 
+  @Column({ nullable: true })
+  attachments?: string;
+
   @ManyToOne(() => User, (user) => user.posts)
   @JoinColumn({ name: 'author_id' })
   author: User;
