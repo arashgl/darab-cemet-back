@@ -1,16 +1,16 @@
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+import { Category } from '../../categories/category.entity';
 import { User } from '../../users/entities/user.entity';
 import { Comment } from './comment.entity';
-import { Category } from '../../categories/category.entity';
 
 export enum PostSection {
   OCCASIONS = 'مناسبت ها',
@@ -18,6 +18,7 @@ export enum PostSection {
   NEWS = 'اخبار ها',
   ACHIEVEMENTS = 'افتخارات',
   SLIDER = 'اسلایدر',
+  HR = 'منابع انسانی',
 }
 
 @Entity('posts')
