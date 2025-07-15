@@ -1,29 +1,33 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
   Req,
-  UseInterceptors,
   UploadedFile,
   UploadedFiles,
   UseGuards,
-  Query,
+  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 
-import { PostsService, PostFilters } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { existsSync, mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { PostSection } from './entities/post.entity';
+import { PostFilters, PostsService } from './posts.service';
 
 @Controller('posts')
 export class PostsController {
@@ -67,32 +71,55 @@ export class PostsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FileInterceptor('leadPicture', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = join(process.cwd(), 'uploads', 'lead-pictures');
-          if (!existsSync(uploadPath)) {
-            mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `${uniqueSuffix}${ext}`);
-        },
-      }),
-    }),
+    FileFieldsInterceptor(
+      [
+        { name: 'leadPicture', maxCount: 1 },
+        { name: 'attachments', maxCount: 50 },
+      ],
+      {
+        storage: diskStorage({
+          destination: (req, file, cb) => {
+            const uploadPath = join(
+              process.cwd(),
+              'uploads',
+              file.fieldname === 'leadPicture'
+                ? 'lead-pictures'
+                : 'attachments',
+            );
+            if (!existsSync(uploadPath)) {
+              mkdirSync(uploadPath, { recursive: true });
+            }
+            cb(null, uploadPath);
+          },
+          filename: (req, file, cb) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = extname(file.originalname);
+            cb(null, `${uniqueSuffix}${ext}`);
+          },
+        }),
+      },
+    ),
   )
   async create(
     @Body() createPostDto: CreatePostDto,
-    @UploadedFile() leadPicture: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      leadPicture?: Express.Multer.File[];
+      attachments?: Express.Multer.File[];
+    },
     @Req() req: any,
   ) {
-    if (leadPicture) {
-      // Update the DTO with the file path
-      createPostDto.leadPicture = `uploads/lead-pictures/${leadPicture.filename}`;
+    if (files?.leadPicture?.[0]) {
+      // Update the DTO with the lead picture file path
+      createPostDto.leadPicture = `uploads/lead-pictures/${files.leadPicture[0].filename}`;
+    }
+
+    if (files?.attachments?.[0]) {
+      // Update the DTO with the attachments file paths
+      createPostDto.attachments = files.attachments.map(
+        (file) => `uploads/attachments/${file.filename}`,
+      );
     }
 
     return this.postsService.create(createPostDto, req.user);
