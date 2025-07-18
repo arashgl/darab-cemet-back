@@ -8,14 +8,12 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
   FileFieldsInterceptor,
-  FileInterceptor,
   FilesInterceptor,
 } from '@nestjs/platform-express';
 
@@ -169,32 +167,55 @@ export class PostsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FileInterceptor('leadPicture', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = join(process.cwd(), 'uploads', 'lead-pictures');
-          if (!existsSync(uploadPath)) {
-            mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `${uniqueSuffix}${ext}`);
-        },
-      }),
-    }),
+    FileFieldsInterceptor(
+      [
+        { name: 'leadPicture', maxCount: 1 },
+        { name: 'attachments', maxCount: 50 },
+      ],
+      {
+        storage: diskStorage({
+          destination: (req, file, cb) => {
+            const uploadPath = join(
+              process.cwd(),
+              'uploads',
+              file.fieldname === 'leadPicture'
+                ? 'lead-pictures'
+                : 'attachments',
+            );
+            if (!existsSync(uploadPath)) {
+              mkdirSync(uploadPath, { recursive: true });
+            }
+            cb(null, uploadPath);
+          },
+          filename: (req, file, cb) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = extname(file.originalname);
+            cb(null, `${uniqueSuffix}${ext}`);
+          },
+        }),
+      },
+    ),
   )
   async update(
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
-    @UploadedFile() leadPicture: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      leadPicture?: Express.Multer.File[];
+      attachments?: Express.Multer.File[];
+    },
   ) {
-    if (leadPicture) {
-      // Update the DTO with the file path
-      updatePostDto.leadPicture = `uploads/lead-pictures/${leadPicture.filename}`;
+    if (files?.leadPicture?.[0]) {
+      // Update the DTO with the lead picture file path
+      updatePostDto.leadPicture = `uploads/lead-pictures/${files.leadPicture[0].filename}`;
+    }
+
+    if (files?.attachments?.[0]) {
+      // Update the DTO with the attachments file paths
+      updatePostDto.attachments = files.attachments.map(
+        (file) => `uploads/attachments/${file.filename}`,
+      );
     }
 
     return this.postsService.update(id, updatePostDto);
