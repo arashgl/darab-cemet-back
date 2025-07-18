@@ -1,9 +1,9 @@
 import {
-  IsString,
   IsArray,
-  IsOptional,
   IsBoolean,
   IsEnum,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 import { PostSection } from '../entities/post.entity';
 
@@ -39,4 +39,6 @@ export class UpdatePostDto {
   @IsOptional()
   @IsString()
   categoryId?: string;
+
+  attachments?: string[];
 }

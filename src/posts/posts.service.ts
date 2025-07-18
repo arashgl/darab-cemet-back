@@ -155,12 +155,15 @@ export class PostsService {
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
     const post = await this.findOne(id);
     const { categoryId, ...rest } = updatePostDto;
+
     Object.assign(post, rest);
+
     if (categoryId !== undefined) {
       post.categoryId = categoryId
         ? (await this.categoryRepo.findOneBy({ id: +categoryId }))?.id
         : undefined;
     }
+
     return this.postsRepository.save(post);
   }
 
