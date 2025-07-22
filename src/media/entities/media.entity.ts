@@ -8,6 +8,9 @@ import {
 export enum MediaType {
   IMAGE = 'image',
   VIDEO = 'video',
+  GALLERY = 'gallery',
+  IFRAME = 'iframe',
+  URL = 'url',
 }
 
 @Entity('media')
@@ -39,6 +42,18 @@ export class Media {
     default: MediaType.IMAGE,
   })
   type: MediaType;
+
+  @Column()
+  title: string;
+
+  @Column({ nullable: true })
+  description?: string;
+
+  @Column({ nullable: true })
+  coverImage?: string;
+
+  @Column({ type: 'simple-array', nullable: true })
+  tags?: string[];
 
   @CreateDateColumn()
   createdAt: Date;
