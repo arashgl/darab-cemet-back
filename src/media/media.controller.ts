@@ -35,6 +35,7 @@ export class MediaController {
     @Query('limit') limit = 20,
     @Query('type') type?: MediaType,
   ): Promise<MediaResponse> {
+    console.log('Fetching media with params:', { page, limit, type });
     return this.mediaService.findAll(+page, +limit, type);
   }
 

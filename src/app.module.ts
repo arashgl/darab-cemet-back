@@ -1,20 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { existsSync, mkdirSync } from 'fs';
+import { diskStorage } from 'multer';
+import { join } from 'path';
+import { TicketsModule } from 'src/tickets/tickets.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import databaseConfig from './config/database.config';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { CategoryModule } from './categories/category.module';
+import databaseConfig from './config/database.config';
+import { MediaModule } from './media/media.module';
 import { PostsModule } from './posts/posts.module';
 import { ProductsModule } from './products/products.module';
-import { MediaModule } from './media/media.module';
-import { CategoryModule } from './categories/category.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import { ServeStaticModule } from '@nestjs/serve-static';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     }),
     AuthModule,
     UsersModule,
+    TicketsModule,
     PostsModule,
     ProductsModule,
     MediaModule,
