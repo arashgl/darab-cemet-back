@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './categories/category.module';
 import databaseConfig from './config/database.config';
 import { MediaModule } from './media/media.module';
+import { PollsModule } from './polls/polls.module';
 import { PostsModule } from './posts/posts.module';
 import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
@@ -51,6 +52,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     TicketsModule,
+    PollsModule,
     PostsModule,
     ProductsModule,
     MediaModule,
