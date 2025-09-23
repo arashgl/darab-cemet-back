@@ -7,18 +7,14 @@ import { PollQuestion } from './entities/poll-question.entity';
 import { PollResponse } from './entities/poll-response.entity';
 import { PollAnswer } from './entities/poll-answer.entity';
 import { PollSeederService } from './seeders/poll-seeder.service';
+import { SupplierPollSeederService } from './seeders/supplier-poll-seeder.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Poll,
-      PollQuestion,
-      PollResponse,
-      PollAnswer,
-    ]),
+    TypeOrmModule.forFeature([Poll, PollQuestion, PollResponse, PollAnswer]),
   ],
   controllers: [PollsController],
-  providers: [PollsService, PollSeederService],
-  exports: [PollsService, PollSeederService],
+  providers: [PollsService, PollSeederService, SupplierPollSeederService],
+  exports: [PollsService, PollSeederService, SupplierPollSeederService],
 })
 export class PollsModule {}

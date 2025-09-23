@@ -23,6 +23,8 @@ export enum SupplierType {
   DISTRIBUTOR = 'distributor',
   TRADING_COMPANY = 'trading_company',
   IMPORTER = 'importer',
+  MAIN = 'main',
+  AGENCY = 'agency',
 }
 
 @Entity('poll_responses')

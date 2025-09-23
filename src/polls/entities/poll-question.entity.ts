@@ -94,7 +94,12 @@ export class PollQuestion {
   conditionalLogic: {
     showIf?: {
       questionId: number;
-      operator: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than';
+      operator:
+        | 'equals'
+        | 'not_equals'
+        | 'contains'
+        | 'greater_than'
+        | 'less_than';
       value: any;
     }[];
   };

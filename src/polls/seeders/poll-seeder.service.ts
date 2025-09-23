@@ -25,7 +25,8 @@ export class PollSeederService {
 
     const poll = this.pollRepository.create({
       title: 'Supplier Satisfaction Survey - Darab Cement',
-      description: 'Comprehensive supplier evaluation and satisfaction survey for Darab Cement Company',
+      description:
+        'Comprehensive supplier evaluation and satisfaction survey for Darab Cement Company',
       type: PollType.SATISFACTION,
       status: PollStatus.ACTIVE,
       requiresAuth: false,
@@ -449,7 +450,9 @@ export class PollSeederService {
       await this.questionRepository.save(question);
     }
 
-    console.log('Darab Cement Supplier Satisfaction Survey has been seeded successfully!');
+    console.log(
+      'Darab Cement Supplier Satisfaction Survey has been seeded successfully!',
+    );
   }
 
   async clearPolls(): Promise<void> {

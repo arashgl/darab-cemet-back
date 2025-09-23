@@ -17,6 +17,10 @@ import {
 } from '@nestjs/common';
 import { PollsService } from './polls.service';
 import { CreatePollDto, UpdatePollDto, SubmitResponseDto } from './dto';
+import {
+  CreateSupplierPollDto,
+  SubmitSupplierResponseDto,
+} from './dto/create-supplier-poll.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { PollStatus } from './entities/poll.entity';
@@ -127,7 +131,10 @@ export class PollsController {
 
   @Get('responses/:responseId')
   @UseGuards(JwtAuthGuard)
-  async getResponseById(@Param('responseId') responseId: string, @Request() req) {
+  async getResponseById(
+    @Param('responseId') responseId: string,
+    @Request() req,
+  ) {
     return await this.pollsService.getResponseById(+responseId, req.user);
   }
 
@@ -159,7 +166,7 @@ export class PollsController {
       title: poll.title,
       description: poll.description,
       type: poll.type,
-      questions: poll.questions.map(q => ({
+      questions: poll.questions.map((q) => ({
         id: q.id,
         question: q.question,
         description: q.description,
@@ -178,7 +185,11 @@ export class PollsController {
   @Post('admin/bulk-action')
   @UseGuards(JwtAuthGuard, AdminGuard)
   async bulkAction(
-    @Body() body: { action: 'delete' | 'activate' | 'close'; pollIds: number[] },
+    @Body()
+    body: {
+      action: 'delete' | 'activate' | 'close';
+      pollIds: number[];
+    },
   ) {
     const { action, pollIds } = body;
     const results: any[] = [];
@@ -191,11 +202,15 @@ export class PollsController {
             results.push({ pollId, success: true, action: 'deleted' });
             break;
           case 'activate':
-            await this.pollsService.update(pollId, { status: PollStatus.ACTIVE });
+            await this.pollsService.update(pollId, {
+              status: PollStatus.ACTIVE,
+            });
             results.push({ pollId, success: true, action: 'activated' });
             break;
           case 'close':
-            await this.pollsService.update(pollId, { status: PollStatus.CLOSED });
+            await this.pollsService.update(pollId, {
+              status: PollStatus.CLOSED,
+            });
             results.push({ pollId, success: true, action: 'closed' });
             break;
         }
@@ -214,14 +229,47 @@ export class PollsController {
 
     const stats = {
       total: allPolls.length,
-      active: allPolls.filter(p => p.status === PollStatus.ACTIVE).length,
-      draft: allPolls.filter(p => p.status === PollStatus.DRAFT).length,
-      closed: allPolls.filter(p => p.status === PollStatus.CLOSED).length,
+      active: allPolls.filter((p) => p.status === PollStatus.ACTIVE).length,
+      draft: allPolls.filter((p) => p.status === PollStatus.DRAFT).length,
+      closed: allPolls.filter((p) => p.status === PollStatus.CLOSED).length,
       totalResponses: allPolls.reduce((sum, p) => sum + p.responseCount, 0),
       totalViews: allPolls.reduce((sum, p) => sum + p.viewCount, 0),
       recentPolls: allPolls.slice(0, 10),
     };
 
     return stats;
+  }
+
+  @Post('supplier-poll')
+  @UseGuards(JwtAuthGuard)
+  async createSupplierPoll(
+    @Body() createSupplierPollDto: CreateSupplierPollDto,
+    @Request() req,
+  ) {
+    return await this.pollsService.createSupplierPoll(
+      createSupplierPollDto,
+      req.user,
+    );
+  }
+
+  @Post(':id/supplier-response')
+  async submitSupplierResponse(
+    @Param('id') id: string,
+    @Body() submitSupplierResponseDto: SubmitSupplierResponseDto,
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent: string,
+    @Session() session: any,
+  ) {
+    const sessionInfo = {
+      sessionId: session.id || `session_${Date.now()}_${Math.random()}`,
+      ipAddress: ip,
+      userAgent,
+    };
+
+    return await this.pollsService.submitSupplierResponse(
+      +id,
+      submitSupplierResponseDto,
+      sessionInfo,
+    );
   }
 }
