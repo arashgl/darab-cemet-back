@@ -12,6 +12,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './categories/category.module';
 import databaseConfig from './config/database.config';
+import { LandingSettingsModule } from './landing-settings/landing-settings.module';
 import { MediaModule } from './media/media.module';
 import { PollsModule } from './polls/polls.module';
 import { PostsModule } from './posts/posts.module';
@@ -57,6 +58,7 @@ import { UsersModule } from './users/users.module';
     ProductsModule,
     MediaModule,
     CategoryModule,
+    LandingSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
