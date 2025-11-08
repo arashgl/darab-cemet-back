@@ -1,4 +1,4 @@
-import { IsString, Matches } from 'class-validator';
+import { IsString, Matches, IsOptional } from 'class-validator';
 
 export class CreateLandingSettingDto {
   @IsString()
@@ -14,6 +14,7 @@ export class CreateLandingSettingDto {
   @IsString()
   description: string;
 
+  @IsOptional()
   @IsString()
-  image: string;
+  image?: string;
 }

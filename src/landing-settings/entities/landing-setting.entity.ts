@@ -1,14 +1,14 @@
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('landing_settings')
 export class LandingSetting {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column({ unique: true })
@@ -20,7 +20,7 @@ export class LandingSetting {
   @Column({ type: 'text' })
   description: string;
 
-  @Column()
+  @Column({ nullable: true })
   image: string;
 
   @CreateDateColumn()
