@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { existsSync, unlinkSync } from 'fs';
+import { join } from 'path';
 import { LandingSetting } from './entities/landing-setting.entity';
 import { CreateLandingSettingDto } from './dto/create-landing-setting.dto';
 import { UpdateLandingSettingDto } from './dto/update-landing-setting.dto';
@@ -24,6 +26,14 @@ export class LandingSettingsService {
     const setting = await this.landingSettingRepo.findOneBy({ id });
     if (!setting) {
       throw new NotFoundException(`Landing setting with ID ${id} not found`);
+    }
+    return setting;
+  }
+
+  async findByKey(key: string) {
+    const setting = await this.landingSettingRepo.findOneBy({ key });
+    if (!setting) {
+      throw new NotFoundException(`Landing setting with key '${key}' not found`);
     }
     return setting;
   }
@@ -56,13 +66,33 @@ export class LandingSettingsService {
       }
     }
 
+    if (updateDto.image && setting.image) {
+      this.deleteImageFile(setting.image);
+    }
+
     Object.assign(setting, updateDto);
     return this.landingSettingRepo.save(setting);
   }
 
   async remove(id: string) {
     const setting = await this.findOne(id);
+
+    if (setting.image) {
+      this.deleteImageFile(setting.image);
+    }
+
     await this.landingSettingRepo.remove(setting);
     return { message: 'Setting deleted successfully' };
+  }
+
+  private deleteImageFile(imagePath: string) {
+    try {
+      const fullPath = join(process.cwd(), imagePath);
+      if (existsSync(fullPath)) {
+        unlinkSync(fullPath);
+      }
+    } catch (error) {
+      console.error(`Failed to delete image file: ${imagePath}`, error);
+    }
   }
 }
