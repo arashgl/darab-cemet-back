@@ -14,7 +14,7 @@ export enum PersonnelType {
 
 @Entity('personnel')
 export class Personnel {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
