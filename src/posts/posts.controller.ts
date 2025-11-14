@@ -73,17 +73,19 @@ export class PostsController {
       [
         { name: 'leadPicture', maxCount: 1 },
         { name: 'attachments', maxCount: 50 },
+        { name: 'gallery', maxCount: 20 },
       ],
       {
         storage: diskStorage({
           destination: (req, file, cb) => {
-            const uploadPath = join(
-              process.cwd(),
-              'uploads',
-              file.fieldname === 'leadPicture'
-                ? 'lead-pictures'
-                : 'attachments',
-            );
+            let uploadPath: string;
+            if (file.fieldname === 'leadPicture') {
+              uploadPath = join(process.cwd(), 'uploads', 'lead-pictures');
+            } else if (file.fieldname === 'gallery') {
+              uploadPath = join(process.cwd(), 'uploads', 'gallery');
+            } else {
+              uploadPath = join(process.cwd(), 'uploads', 'attachments');
+            }
             if (!existsSync(uploadPath)) {
               mkdirSync(uploadPath, { recursive: true });
             }
@@ -96,6 +98,16 @@ export class PostsController {
             cb(null, `${uniqueSuffix}${ext}`);
           },
         }),
+        fileFilter: (req, file, cb) => {
+          if (file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
+            cb(null, true);
+          } else {
+            cb(new Error('Only image files are allowed!'), false);
+          }
+        },
+        limits: {
+          fileSize: 10 * 1024 * 1024, // 10MB limit per file
+        },
       },
     ),
   )
@@ -105,6 +117,7 @@ export class PostsController {
     files: {
       leadPicture?: Express.Multer.File[];
       attachments?: Express.Multer.File[];
+      gallery?: Express.Multer.File[];
     },
     @Req() req: any,
   ) {
@@ -117,6 +130,13 @@ export class PostsController {
       // Update the DTO with the attachments file paths
       createPostDto.attachments = files.attachments.map(
         (file) => `uploads/attachments/${file.filename}`,
+      );
+    }
+
+    if (files?.gallery) {
+      // Update the DTO with the gallery file paths
+      createPostDto.gallery = files.gallery.map(
+        (file) => `uploads/gallery/${file.filename}`,
       );
     }
 
@@ -171,17 +191,19 @@ export class PostsController {
       [
         { name: 'leadPicture', maxCount: 1 },
         { name: 'attachments', maxCount: 50 },
+        { name: 'gallery', maxCount: 20 },
       ],
       {
         storage: diskStorage({
           destination: (req, file, cb) => {
-            const uploadPath = join(
-              process.cwd(),
-              'uploads',
-              file.fieldname === 'leadPicture'
-                ? 'lead-pictures'
-                : 'attachments',
-            );
+            let uploadPath: string;
+            if (file.fieldname === 'leadPicture') {
+              uploadPath = join(process.cwd(), 'uploads', 'lead-pictures');
+            } else if (file.fieldname === 'gallery') {
+              uploadPath = join(process.cwd(), 'uploads', 'gallery');
+            } else {
+              uploadPath = join(process.cwd(), 'uploads', 'attachments');
+            }
             if (!existsSync(uploadPath)) {
               mkdirSync(uploadPath, { recursive: true });
             }
@@ -194,6 +216,16 @@ export class PostsController {
             cb(null, `${uniqueSuffix}${ext}`);
           },
         }),
+        fileFilter: (req, file, cb) => {
+          if (file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
+            cb(null, true);
+          } else {
+            cb(new Error('Only image files are allowed!'), false);
+          }
+        },
+        limits: {
+          fileSize: 10 * 1024 * 1024, // 10MB limit per file
+        },
       },
     ),
   )
@@ -204,6 +236,7 @@ export class PostsController {
     files: {
       leadPicture?: Express.Multer.File[];
       attachments?: Express.Multer.File[];
+      gallery?: Express.Multer.File[];
     },
   ) {
     if (files?.leadPicture?.[0]) {
@@ -215,6 +248,13 @@ export class PostsController {
       // Update the DTO with the attachments file paths
       updatePostDto.attachments = files.attachments.map(
         (file) => `uploads/attachments/${file.filename}`,
+      );
+    }
+
+    if (files?.gallery) {
+      // Update the DTO with the gallery file paths
+      updatePostDto.gallery = files.gallery.map(
+        (file) => `uploads/gallery/${file.filename}`,
       );
     }
 

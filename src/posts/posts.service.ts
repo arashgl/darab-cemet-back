@@ -146,6 +146,7 @@ export class PostsService {
     const post = this.postsRepository.create({
       ...rest,
       attachments: createPostDto.attachments?.join(','),
+      gallery: createPostDto.gallery?.join(','),
       author,
       category,
     });
@@ -154,9 +155,17 @@ export class PostsService {
 
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
     const post = await this.findOne(id);
-    const { categoryId, ...rest } = updatePostDto;
+    const { categoryId, attachments, gallery, ...rest } = updatePostDto;
 
     Object.assign(post, rest);
+
+    if (attachments) {
+      post.attachments = attachments.join(',');
+    }
+
+    if (gallery) {
+      post.gallery = gallery.join(',');
+    }
 
     if (categoryId !== undefined) {
       post.categoryId = categoryId

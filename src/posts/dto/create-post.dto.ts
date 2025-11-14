@@ -35,4 +35,6 @@ export class CreatePostDto {
   leadPicture: string;
 
   attachments?: string[];
+
+  gallery?: string[];
 }

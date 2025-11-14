@@ -41,4 +41,6 @@ export class UpdatePostDto {
   categoryId?: string;
 
   attachments?: string[];
+
+  gallery?: string[];
 }
