@@ -1,34 +1,34 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
   Body,
-  UseGuards,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
-  UseInterceptors,
+  Param,
+  Patch,
+  Post,
   UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { existsSync, mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
-import { LandingSettingsService } from './landing-settings.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateLandingSettingDto } from './dto/create-landing-setting.dto';
 import { UpdateLandingSettingDto } from './dto/update-landing-setting.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { LandingSettingsService } from './landing-settings.service';
 
 @Controller('landing-settings')
-@UseGuards(JwtAuthGuard)
 export class LandingSettingsController {
   constructor(
     private readonly landingSettingsService: LandingSettingsService,
   ) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.landingSettingsService.findAll();
   }
@@ -39,11 +39,13 @@ export class LandingSettingsController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.landingSettingsService.findOne(id);
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -74,6 +76,7 @@ export class LandingSettingsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -105,6 +108,7 @@ export class LandingSettingsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   remove(@Param('id') id: string) {
     return this.landingSettingsService.remove(id);
