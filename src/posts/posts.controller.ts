@@ -102,7 +102,10 @@ export class PostsController {
           if (file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
             cb(null, true);
           } else {
-            cb(new Error('Only image files are allowed!'), false);
+            if (file.fieldname != 'attachments') {
+              cb(new Error('Only image files are allowed!'), false);
+            }
+            cb(null, true);
           }
         },
         limits: {
