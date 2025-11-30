@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -52,11 +52,18 @@ export class AuthService {
 
     const user = await this.usersService.findByEmail(email);
     if (!user) {
+      console.error(`Login attempt failed: User not found for email ${email}`);
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.isActive) {
+      console.error(`Login attempt failed: User ${email} is inactive`);
+      throw new UnauthorizedException('Account is inactive');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.error(`Login attempt failed: Invalid password for ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -66,6 +73,9 @@ export class AuthService {
       role: user.role,
     };
 
+    const token = this.jwtService.sign(payload);
+    console.log(`User ${email} logged in successfully`);
+
     return {
       user: {
         id: user.id,
@@ -73,7 +83,7 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
       },
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
     };
   }
 }

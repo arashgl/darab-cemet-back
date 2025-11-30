@@ -220,10 +220,23 @@ export class PostsController {
           },
         }),
         fileFilter: (req, file, cb) => {
-          if (file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
-            cb(null, true);
+          if (
+            file.fieldname === 'gallery' ||
+            file.fieldname === 'leadPicture'
+          ) {
+            if (file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
+              cb(null, true);
+            } else {
+              cb(
+                new Error(
+                  'Only image files are allowed for gallery and leadPicture!',
+                ),
+                false,
+              );
+            }
           } else {
-            cb(new Error('Only image files are allowed!'), false);
+            // attachments می‌تواند هر نوع فایلی باشد
+            cb(null, true);
           }
         },
         limits: {

@@ -1,14 +1,14 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -21,12 +21,14 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
-  async findById(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+  async findById(id: string): Promise<User | null> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { id } });
+      return user;
+    } catch (error) {
+      console.error(`Error finding user by id ${id}:`, error.message);
+      return null;
     }
-    return user;
   }
 
   async findByEmail(email: string): Promise<User | null> {
