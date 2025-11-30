@@ -58,6 +58,10 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
 
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
     if (updateUserDto.password) {
       updateUserDto.password = await this.hashPassword(updateUserDto.password);
     }
