@@ -118,7 +118,7 @@ export class PostsService {
     };
   }
 
-  async findOne(id: string): Promise<Post> {
+  async findOne(id: string): Promise<any> {
     const post = await this.postsRepository.findOne({
       where: { id },
       relations: ['author'],
@@ -128,7 +128,11 @@ export class PostsService {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
 
-    return post;
+    return {
+      ...post,
+      attachments: post.attachments ? post.attachments.split(',') : [],
+      gallery: post.gallery ? post.gallery.split(',') : [],
+    };
   }
 
   async incrementViews(id: string): Promise<Post> {
