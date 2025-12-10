@@ -130,10 +130,10 @@ export class PostsController {
     }
 
     if (files?.attachments?.[0]) {
-      // Update the DTO with the attachments file paths
-      createPostDto.attachments = files.attachments.map(
-        (file) => `uploads/attachments/${file.filename}`,
-      );
+      createPostDto.attachments = files.attachments.map((file) => ({
+        name: file.originalname,
+        url: `uploads/attachments/${file.filename}`,
+      }));
     }
 
     if (files?.gallery) {
@@ -261,10 +261,10 @@ export class PostsController {
     }
 
     if (files?.attachments?.[0]) {
-      // Update the DTO with the attachments file paths
-      updatePostDto.attachments = files.attachments.map(
-        (file) => `uploads/attachments/${file.filename}`,
-      );
+      updatePostDto.attachments = files.attachments.map((file) => ({
+        name: file.originalname,
+        url: `uploads/attachments/${file.filename}`,
+      }));
     }
 
     if (files?.gallery) {

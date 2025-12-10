@@ -1,11 +1,14 @@
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { PostSection } from '../entities/post.entity';
+import { AttachmentDto } from './attachment.dto';
 
 export class CreatePostDto {
   @IsNotEmpty()
@@ -34,7 +37,11 @@ export class CreatePostDto {
 
   leadPicture: string;
 
-  attachments?: string[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AttachmentDto)
+  attachments?: AttachmentDto[];
 
   gallery?: string[];
 }

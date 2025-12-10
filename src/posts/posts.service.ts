@@ -7,6 +7,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Comment } from './entities/comment.entity';
+import { PostAttachment } from './entities/post-attachment.entity';
 import { Post, PostSection } from './entities/post.entity';
 
 export interface PaginatedResponse<T> {
@@ -26,10 +27,6 @@ export interface PostFilters {
   categoryId?: number;
 }
 
-export type PostWithAttachments = Omit<Post, 'attachments'> & {
-  attachments: string[];
-};
-
 @Injectable()
 export class PostsService {
   constructor(
@@ -37,6 +34,8 @@ export class PostsService {
     private postsRepository: Repository<Post>,
     @InjectRepository(Comment)
     private commentsRepository: Repository<Comment>,
+    @InjectRepository(PostAttachment)
+    private attachmentRepository: Repository<PostAttachment>,
     @InjectRepository(Category)
     private categoryRepo: Repository<Category>,
   ) {}
@@ -46,17 +45,16 @@ export class PostsService {
     limit = 10,
     filters?: PostFilters,
     sort?: string,
-  ): Promise<PaginatedResponse<PostWithAttachments>> {
+  ): Promise<PaginatedResponse<Post>> {
     const skip = (page - 1) * limit;
 
-    // Build query with filters
     const queryBuilder = this.postsRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.attachments', 'attachments')
       .skip(skip)
       .take(limit);
 
-    // Apply sorting
     switch (sort) {
       case 'newest':
         queryBuilder.orderBy('post.createdAt', 'DESC');
@@ -68,10 +66,9 @@ export class PostsService {
         queryBuilder.orderBy('post.views', 'DESC');
         break;
       default:
-        queryBuilder.orderBy('post.createdAt', 'DESC'); // Default sort by newest
+        queryBuilder.orderBy('post.createdAt', 'DESC');
     }
 
-    // Apply filters if provided
     if (filters) {
       if (filters.section) {
         queryBuilder.andWhere('post.section = :section', {
@@ -86,7 +83,6 @@ export class PostsService {
       }
 
       if (filters.tags && filters.tags.length > 0) {
-        // Filter posts that have at least one of the specified tags
         queryBuilder.andWhere('post.tags && :tags', {
           tags: filters.tags,
         });
@@ -99,16 +95,10 @@ export class PostsService {
       }
     }
 
-    // Execute query and count
     const [posts, totalItems] = await queryBuilder.getManyAndCount();
 
     return {
-      data: posts.map((post) => {
-        return {
-          ...post,
-          attachments: post.attachments?.split(',') || [],
-        };
-      }),
+      data: posts,
       meta: {
         currentPage: page,
         itemsPerPage: limit,
@@ -118,21 +108,17 @@ export class PostsService {
     };
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<Post> {
     const post = await this.postsRepository.findOne({
       where: { id },
-      relations: ['author'],
+      relations: ['author', 'attachments'],
     });
 
     if (!post) {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
 
-    return {
-      ...post,
-      attachments: post.attachments ? post.attachments.split(',') : [],
-      gallery: post.gallery ? post.gallery.split(',') : [],
-    };
+    return post;
   }
 
   async incrementViews(id: string): Promise<Post> {
@@ -142,14 +128,19 @@ export class PostsService {
   }
 
   async create(createPostDto: CreatePostDto, author: User): Promise<Post> {
-    const { categoryId, ...rest } = createPostDto;
+    const { categoryId, attachments, ...rest } = createPostDto;
     let category: Category | null = null;
     if (categoryId) {
       category = await this.categoryRepo.findOneBy({ id: +categoryId });
     }
+
+    const attachmentEntities = attachments?.map((att) =>
+      this.attachmentRepository.create({ name: att.name, url: att.url }),
+    );
+
     const post = this.postsRepository.create({
       ...rest,
-      attachments: createPostDto.attachments?.join(','),
+      attachments: attachmentEntities,
       gallery: createPostDto.gallery?.join(','),
       author,
       category,
@@ -164,7 +155,10 @@ export class PostsService {
     Object.assign(post, rest);
 
     if (attachments) {
-      post.attachments = attachments.join(',');
+      await this.attachmentRepository.delete({ postId: post.id });
+      post.attachments = attachments.map((att) =>
+        this.attachmentRepository.create({ name: att.name, url: att.url }),
+      );
     }
 
     if (gallery) {

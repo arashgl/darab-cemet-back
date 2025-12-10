@@ -11,6 +11,7 @@ import {
 import { Category } from '../../categories/category.entity';
 import { User } from '../../users/entities/user.entity';
 import { Comment } from './comment.entity';
+import { PostAttachment } from './post-attachment.entity';
 
 export enum PostSection {
   OCCASIONS = 'مناسبت ها',
@@ -48,8 +49,11 @@ export class Post {
   @Column()
   leadPicture: string;
 
-  @Column({ nullable: true })
-  attachments?: string;
+  @OneToMany(() => PostAttachment, (attachment) => attachment.post, {
+    cascade: true,
+    eager: true,
+  })
+  attachments: PostAttachment[];
 
   @Column({ type: 'text', nullable: true })
   gallery?: string;

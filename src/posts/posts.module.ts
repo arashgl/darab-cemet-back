@@ -4,10 +4,11 @@ import { Post } from './entities/post.entity';
 import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
 import { Comment } from './entities/comment.entity';
+import { PostAttachment } from './entities/post-attachment.entity';
 import { Category } from '../categories/category.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, Comment, Category])],
+  imports: [TypeOrmModule.forFeature([Post, Comment, PostAttachment, Category])],
   providers: [PostsService],
   controllers: [PostsController],
   exports: [PostsService],

@@ -1,11 +1,14 @@
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { PostSection } from '../entities/post.entity';
+import { AttachmentDto } from './attachment.dto';
 
 export class UpdatePostDto {
   @IsOptional()
@@ -40,7 +43,11 @@ export class UpdatePostDto {
   @IsString()
   categoryId?: string;
 
-  attachments?: string[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AttachmentDto)
+  attachments?: AttachmentDto[];
 
   gallery?: string[];
 }
