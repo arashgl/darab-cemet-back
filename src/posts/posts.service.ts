@@ -108,7 +108,24 @@ export class PostsService {
     };
   }
 
-  async findOne(id: string): Promise<Post> {
+  async findOne(id: string): Promise<any> {
+    const post = await this.postsRepository.findOne({
+      where: { id },
+      relations: ['author', 'attachments'],
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${id} not found`);
+    }
+
+    return {
+      ...post,
+      attachments: post.attachments || [],
+      gallery: post.gallery ? post.gallery.split(',') : [],
+    };
+  }
+
+  private async findOneRaw(id: string): Promise<Post> {
     const post = await this.postsRepository.findOne({
       where: { id },
       relations: ['author', 'attachments'],
@@ -122,7 +139,7 @@ export class PostsService {
   }
 
   async incrementViews(id: string): Promise<Post> {
-    const post = await this.findOne(id);
+    const post = await this.findOneRaw(id);
     post.views += 1;
     return this.postsRepository.save(post);
   }
@@ -149,7 +166,7 @@ export class PostsService {
   }
 
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
-    const post = await this.findOne(id);
+    const post = await this.findOneRaw(id);
     const {
       categoryId,
       attachments,
@@ -178,14 +195,14 @@ export class PostsService {
 
       // اضافه کردن attachments جدید
       if (attachments && attachments.length > 0) {
-        const newAttachments = attachments.map((att) =>
-          this.attachmentRepository.create({
+        for (const att of attachments) {
+          const newAttachment = this.attachmentRepository.create({
             name: att.name,
             url: att.url,
-            postId: post.id,
-          }),
-        );
-        await this.attachmentRepository.save(newAttachments);
+            post: post,
+          });
+          await this.attachmentRepository.save(newAttachment);
+        }
       }
     }
 
@@ -228,7 +245,7 @@ export class PostsService {
     id: string,
     createCommentDto: CreateCommentDto,
   ): Promise<Comment> {
-    const post = await this.findOne(id);
+    const post = await this.findOneRaw(id);
 
     // Create and save the comment
     const comment = this.commentsRepository.create({
@@ -245,12 +262,12 @@ export class PostsService {
   }
 
   async getComments(id: string): Promise<Comment[]> {
-    const post = await this.findOne(id);
+    const post = await this.findOneRaw(id);
     return post.comments || [];
   }
 
   private async updatePostRating(postId: string): Promise<void> {
-    const post = await this.findOne(postId);
+    const post = await this.findOneRaw(postId);
 
     if (!post.comments || post.comments.length === 0) {
       post.averageRating = 0;
