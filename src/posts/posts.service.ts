@@ -150,19 +150,61 @@ export class PostsService {
 
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
     const post = await this.findOne(id);
-    const { categoryId, attachments, gallery, ...rest } = updatePostDto;
+    const {
+      categoryId,
+      attachments,
+      gallery,
+      existingGallery,
+      existingAttachmentIds,
+      ...rest
+    } = updatePostDto;
 
     Object.assign(post, rest);
 
-    if (attachments) {
-      await this.attachmentRepository.delete({ postId: post.id });
-      post.attachments = attachments.map((att) =>
-        this.attachmentRepository.create({ name: att.name, url: att.url }),
-      );
+    // مدیریت attachments
+    if (attachments || existingAttachmentIds !== undefined) {
+      // دریافت attachments موجود
+      const currentAttachments = post.attachments || [];
+
+      // حذف attachments که در existingAttachmentIds نیستند
+      if (existingAttachmentIds !== undefined) {
+        // حذف attachments که کاربر حذف کرده
+        for (const att of currentAttachments) {
+          if (!existingAttachmentIds.includes(String(att.id))) {
+            await this.attachmentRepository.delete(att.id);
+          }
+        }
+      }
+
+      // اضافه کردن attachments جدید
+      if (attachments && attachments.length > 0) {
+        const newAttachments = attachments.map((att) =>
+          this.attachmentRepository.create({
+            name: att.name,
+            url: att.url,
+            postId: post.id,
+          }),
+        );
+        await this.attachmentRepository.save(newAttachments);
+      }
     }
 
-    if (gallery) {
-      post.gallery = gallery.join(',');
+    // مدیریت gallery
+    if (gallery || existingGallery !== undefined) {
+      // گالری موجود
+      const currentGallery = post.gallery ? post.gallery.split(',') : [];
+
+      // عکس‌هایی که باید نگه داشته شوند
+      const keptGallery = existingGallery || [];
+
+      // اضافه کردن عکس‌های جدید
+      const newGallery = gallery || [];
+
+      // ترکیب عکس‌های موجود که حذف نشدند با عکس‌های جدید
+      const finalGallery = [...keptGallery, ...newGallery];
+
+      post.gallery =
+        finalGallery.length > 0 ? finalGallery.join(',') : undefined;
     }
 
     if (categoryId !== undefined) {

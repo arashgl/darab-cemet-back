@@ -50,4 +50,12 @@ export class UpdatePostDto {
   attachments?: AttachmentDto[];
 
   gallery?: string[];
+
+  @IsOptional()
+  @IsArray()
+  existingGallery?: string[];
+
+  @IsOptional()
+  @IsArray()
+  existingAttachmentIds?: string[];
 }
